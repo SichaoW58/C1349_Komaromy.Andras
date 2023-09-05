@@ -1,0 +1,209 @@
+---
+title: "OcularPluseStudy_repeatability"
+author: 
+  - name: Sichao Wang
+    email: wangsic1@msu.edu
+    affiliations: 
+      - name: Michigan State University, Center for Statistical Training and Consulting
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+format: 
+  html: 
+    toc: true 
+    toc-depth: 4
+    toc-location: left 
+    number-sections: true
+    number-depth: 4
+    code-fold: false 
+    code-tools: false 
+    embed-resources: true 
+    theme: default 
+execute: 
+  eval: true 
+  echo: false #fenced
+  output: true 
+  message: false 
+  warning: false 
+  error: false 
+  include: true 
+---
+
+# Project Overview:
+
+Title: OcularPluseStudy_repeatability
+
+<p>
+
+Project PI's:
+
+<p>
+
+- András M. Komáromy 
+
+<p>
+
+
+CSTAT Personnel:
+
+<p>
+
+-   Sichao Wang, Ph.D.,
+
+<p>
+
+
+
+<h3>Primary Objective:</h3>
+
+<p>
+
+**Calculate repeatibiilty statistcs and ploting** 
+<p>
+
+
+## Project Updates:
+
+
+
+
+
+```{r}
+#| label: load-packages
+#| include: false
+
+pacman::p_load(## file folder setup
+               fs,   # creat folder dir_create()
+               here, # easy to do cross reference in the project.
+               ## Data step
+               readr,
+               readxl, # read_excel()
+               tidyverse,
+               janitor,
+               ## IDA
+               Hmisc,
+               ## Model
+               meta,
+               metafor,
+               dmetar, #for find.outliers()
+               lme4,
+               glmmTMB,
+               broom,
+               emmeans,
+               ##repeatibility
+               irr,# for agreement
+               psych,# for agreement
+               confintr,#for ci_cor()
+               DescTools,
+               ## result reporting
+               ### graph
+               ggplot2,
+               ### table
+               gt,
+               gtsummary,
+               knitr,        # for kable()
+               sjPlot      # tab_model()
+               )
+
+
+set.seed(42004063)
+
+```
+
+```{r}
+#| label: setup-folder
+#| include: false
+
+# create the default folder/subfolder
+
+dir_create(here("Data"))  # store raw data, clean data. 
+dir_create(here("Data/Raw"))  
+dir_create(here("Data/Clean")) 
+
+dir_create(here("Documents"))  # all the docs
+dir_create(here("Code"))       # r code
+dir_create(here("E-mails"))    # correspondence
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "Code/OcularPluseStudy_repeatability.qmd")  #save the qmd under code first and run this line.
+
+# dir_ls()    # briefly check
+# dir_tree()  # Show the tree, not necessary, takes time.
+# dir_tree("Data")
+
+```
+
+```{r}
+#| label: import-data
+#| include: false
+
+## Use gender as an example first.
+
+dat_repeat <- read_excel(here("Data/Raw/Copy of OcularPulseStudy_Repeatability 9-1-23.xlsx"), 
+    sheet = "Repeatability-2", skip = 3,na="x") %>% 
+  clean_names() %>% 
+  rename(eye_order="x1_od_first_2_os_first",od_opa="od_17",os_opa="os_18") %>% 
+  select(session,animal_id,sex,dob,disease_state,eye_order,od_opa,os_opa)
+
+
+dat_repeat_wide<-dat_repeat %>% pivot_longer(cols = ends_with("opa"),
+                            names_to = c("eye",".value"),
+                            names_pattern = "(.*)_(.*)",
+    values_to = "opa") %>% 
+  pivot_wider(names_from = session,values_from = opa)
+
+```
+
+#  Some agreement index
+
+The repeatability coefficient (RC) is a number that, if you make two measurements of the same thing under the same conditions, the difference between those two measurements will be less than the RC in 95% of cases.[4, 5] The smaller the repeatability coefficient is, the better.
+
+```{r}
+#| label: repeatability_coef
+
+# https://rowannicholls.github.io/R/statistics/agreement/repeatability_coefficient.html
+
+# https://cran.r-project.org/web/packages/rptR/vignettes/rptR.html  #for diff icc from model
+
+dat_repeat_wide <- dat_repeat_wide %>% mutate(var = apply(.[(7:8)],1,var),m=apply(.[(7:8)],1,mean)) %>% mutate(CoV=sqrt(var)/m)
+
+
+rc <- 1.96 * sqrt(2) *sqrt(mean(dat_repeat_wide$var,na.rm=T))
+
+CoVavg <- mean(dat_repeat_wide$CoV,na.rm=T)
+
+# print(rc)
+```
+
+
+# Some agreement index
+
+```{r}
+#| label: tbl-ICC
+#| tbl-cap: Agreement index table
+
+opaICC <- icc(na.omit(dat_repeat_wide[,c("1","2")]),model = "twoway",type = "consistency",unit="single")
+
+
+
+
+opaCor <- ci_cor(dat_repeat_wide[,c("1","2")], type = "bootstrap",  method = c("pearson"),R = 1000)
+
+
+
+opaCCC<-CCC(dat_repeat_wide$`1`,dat_repeat_wide$`2`, ci = "z-transform", conf.level = 0.95, na.rm = TRUE)
+
+
+
+
+data.frame(ICC=c(opaICC$value, opaICC$lbound,opaICC$ubound),Cor=c(opaCor$estimate,opaCor$interval),CCC=c(opaCCC$rho.c %>% unlist() %>% pluck(1), opaCCC$rho.c %>% unlist() %>% pluck(2),opaCCC$rho.c %>% unlist() %>% pluck(3))) %>% t() %>% data.frame() %>% rownames_to_column() %>% set_names("Agreement Index","Estimate","95% confidence interval(lower bound)","95% confidence interval(upper bound)") %>% gt()
+
+
+
+```
+
+
+@tbl-ICC shows some extra aggreement index.
+
+ICC represents intraclass correlation
+Cor represents regular pearson correlation
+CCC represents concordance correlation coefficient
+
