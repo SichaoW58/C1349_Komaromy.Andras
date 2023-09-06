@@ -154,6 +154,11 @@ dat_repeat_wide<-dat_repeat %>% pivot_longer(cols = ends_with("opa"),
 
 #  Some agreement index
 
+<<<<<<< HEAD
+
+=======
+<<<<<<< HEAD
+>>>>>>> f86860a364785e7abaa18dceadffb53db18b4a2c
 1. The repeatability coefficient (RC) is a number that, if you make two measurements of the same thing under the same conditions, the difference between those two measurements will be less than the RC in 95% of cases.[4, 5] The smaller the repeatability coefficient is, the better.
 
 2. The calculation of Coefficient of Variation (CV) from duplicate measurements made on a number of different subjects or materials is used to determine the reproducibility of the measurements as an alternative to making a large number of observations on a single subject or material to estimate the within-run imprecision directly (Jones & Payne, 1997). There are three ways to calculate.
@@ -161,6 +166,15 @@ dat_repeat_wide<-dat_repeat %>% pivot_longer(cols = ends_with("opa"),
 - Root mean square method
 - Logarithmic method
 - Within-subject standard deviation method
+<<<<<<< HEAD
+
+The repeatability coefficient (RC) is a number that, if you make two measurements of the same thing under the same conditions, the difference between those two measurements will be less than the RC in 95% of cases.[4, 5] The smaller the repeatability coefficient is, the better.
+
+=======
+=======
+The repeatability coefficient (RC) is a number that, if you make two measurements of the same thing under the same conditions, the difference between those two measurements will be less than the RC in 95% of cases.[4, 5] The smaller the repeatability coefficient is, the better.
+>>>>>>> 166f083f674e6eb2ee88a4b8896d2451523ae736
+>>>>>>> f86860a364785e7abaa18dceadffb53db18b4a2c
 
 ```{r}
 #| label: repeatability_coef
@@ -169,13 +183,30 @@ dat_repeat_wide<-dat_repeat %>% pivot_longer(cols = ends_with("opa"),
 
 # https://cran.r-project.org/web/packages/rptR/vignettes/rptR.html  #for diff icc from model
 
+<<<<<<< HEAD
+
 dat_repeat_wide <- dat_repeat_wide %>% mutate(var = apply(.[(7:8)],1,var),m=apply(.[(7:8)],1,mean)) %>% mutate(CoV=sqrt(var)/m, CoVrm=((`1`-`2`)/(`1`/2+`2`/2))*((`1`-`2`)/(`1`/2+`2`/2)),sl=(log(`1`)-log(`2`))^2,SqrD=(`1`-`2`)^2)
+
+dat_repeat_wide <- dat_repeat_wide %>% mutate(var = apply(.[(7:8)],1,var),m=apply(.[(7:8)],1,mean)) %>% mutate(CoV=sqrt(var)/m)
+
+=======
+<<<<<<< HEAD
+dat_repeat_wide <- dat_repeat_wide %>% mutate(var = apply(.[(7:8)],1,var),m=apply(.[(7:8)],1,mean)) %>% mutate(CoV=sqrt(var)/m, CoVrm=((`1`-`2`)/(`1`/2+`2`/2))*((`1`-`2`)/(`1`/2+`2`/2)),sl=(log(`1`)-log(`2`))^2,SqrD=(`1`-`2`)^2)
+=======
+dat_repeat_wide <- dat_repeat_wide %>% mutate(var = apply(.[(7:8)],1,var),m=apply(.[(7:8)],1,mean)) %>% mutate(CoV=sqrt(var)/m)
+>>>>>>> 166f083f674e6eb2ee88a4b8896d2451523ae736
+>>>>>>> f86860a364785e7abaa18dceadffb53db18b4a2c
 
 
 rc <- 1.96 * sqrt(2) *sqrt(mean(dat_repeat_wide$var,na.rm=T))
 
 CoVavg <- mean(dat_repeat_wide$CoV,na.rm=T)
 
+<<<<<<< HEAD
+
+=======
+<<<<<<< HEAD
+>>>>>>> f86860a364785e7abaa18dceadffb53db18b4a2c
 
 #https://www.medcalc.org/manual/cvfromduplicates.php
 
@@ -204,7 +235,6 @@ CoVwi <- sqrt(sum(dat_repeat_wide$SqrD,na.rm = T)/(2*34))/mean(dat_repeat_wide$m
 
 data.frame(Index=c("repeatability coefficient (RC)","Coefficient of Variation (CV):Root mean square method","Coefficient of Variation (CV):Logarithmic method","Coefficient of Variation (CV): Within-subject standard deviation method"),estimate=c(rc,CoVrqrt,CoVln,CoVwi)) %>% gt()
 
-
 # print(rc)
 ```
 
@@ -223,13 +253,14 @@ opaICC <- icc(na.omit(dat_repeat_wide[,c("1","2")]),model = "twoway",type = "con
 opaCor <- ci_cor(dat_repeat_wide[,c("1","2")], type = "bootstrap",  method = c("pearson"),R = 1000)
 
 
+opaCor_spear <- ci_cor(dat_repeat_wide[,c("1","2")], type = "bootstrap",  method = c("spearman"),R = 1000)
 
 opaCCC<-CCC(dat_repeat_wide$`1`,dat_repeat_wide$`2`, ci = "z-transform", conf.level = 0.95, na.rm = TRUE)
 
 
 
 
-data.frame(ICC=c(opaICC$value, opaICC$lbound,opaICC$ubound),Cor=c(opaCor$estimate,opaCor$interval),CCC=c(opaCCC$rho.c %>% unlist() %>% pluck(1), opaCCC$rho.c %>% unlist() %>% pluck(2),opaCCC$rho.c %>% unlist() %>% pluck(3))) %>% t() %>% data.frame() %>% rownames_to_column() %>% set_names("Agreement Index","Estimate","95% confidence interval(lower bound)","95% confidence interval(upper bound)") %>% gt()
+data.frame(ICC=c(opaICC$value, opaICC$lbound,opaICC$ubound),Cor=c(opaCor$estimate,opaCor$interval),Cor_spear=c(opaCor_spear$estimate,opaCor_spear$interval),CCC=c(opaCCC$rho.c %>% unlist() %>% pluck(1), opaCCC$rho.c %>% unlist() %>% pluck(2),opaCCC$rho.c %>% unlist() %>% pluck(3))) %>% t() %>% data.frame() %>% rownames_to_column() %>% set_names("Agreement Index","Estimate","95% confidence interval(lower bound)","95% confidence interval(upper bound)") %>% gt()
 
 
 
@@ -240,5 +271,41 @@ data.frame(ICC=c(opaICC$value, opaICC$lbound,opaICC$ubound),Cor=c(opaCor$estimat
 
 ICC represents intraclass correlation
 Cor represents regular pearson correlation
+Cor_spear represents spearman correlation
 CCC represents concordance correlation coefficient
+
+
+
+## Bland-Altman plots
+
+
+```{r}
+#| label: fig-BA_plot
+#| fig-cap: Bland Altman plot
+
+#Bland-Altman Plot
+dat_repeat_wide<-dat_repeat_wide %>% mutate(mean=(`1`+`2`)/2,diff=`1`-`2`)
+
+
+# hist(Dat_Mano_tono$diff,breaks = 7)
+
+# The difference is skewed
+
+ggplot(dat_repeat_wide, aes(x = mean, y = diff)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = mean(dat_repeat_wide$diff,na.rm=T), colour = "green", size = 0.5) +
+  geom_hline(yintercept = mean(dat_repeat_wide$diff,na.rm=T) - (1.96 * sd(dat_repeat_wide$diff,na.rm=T)), colour = "red", size = 0.5,lty="dashed") +
+  geom_hline(yintercept = mean(dat_repeat_wide$diff,na.rm=T) + (1.96 * sd(dat_repeat_wide$diff,na.rm=T)), colour = "red", size = 0.5,lty="dashed") +
+  geom_smooth(method = "lm",se=FALSE)+
+  theme_classic()+
+  ylab("time 1 minus time 2") +
+  xlab("Mean of time 1 and time 2)")
+
+
+```
+
+First of all, @fig-BA_plot shows systematic pattern which is as OPA increase the bias increase. All the differences fall between the limits of agreement. 
+
+Upper and lower red dotted lines indicate 95% Limits of Agreement. The mean show in green line is `r mean(dat_repeat_wide$diff,na.rm=T)`; Upper limit of Agreement shown in red dashed is `r mean(dat_repeat_wide$diff,na.rm=T) + (1.96 * sd(dat_repeat_wide$diff,na.rm=T))`; Lower limit of Agreement shown in red dashed is `r mean(dat_repeat_wide$diff,na.rm=T) - (1.96 * sd(dat_repeat_wide$diff,na.rm=T))`.
+
 
